@@ -51,11 +51,31 @@ app.get("/users", async (req, res) => {
   });
 });
 
-app.get("/users/:id", async (req, res) => {
-  const id = req.params.id;
+// instead of throwing error we pass the error next function to handle it
+// curl http://localhost:3000/users/aa  will return invalid id exception
+// with -I flag we can also see 400 Bad Request
+
+app.get("/users/:id", async (req, res, next) => {
+  const id = Number.parseInt(req.params.id);
+  if (Number.isNaN(id)) {
+    next(new InvalidIdException());
+  }
   const user = await User.findOne({ where: { id: id } });
+  if (!user) {
+    next(new UserNotFoundException());
+  }
   res.send(user);
 });
+
+function InvalidIdException() {
+  this.status = 400;
+  this.message = "Invalid ID";
+}
+
+function UserNotFoundException() {
+  this.status = 404;
+  this.message = "User not found";
+}
 
 app.put("/users/:id", async (req, res) => {
   const id = req.params.id;
@@ -69,6 +89,15 @@ app.delete("/users/:id", async (req, res) => {
   const id = req.params.id;
   await User.destroy({ where: { id: id } });
   res.send("removed");
+});
+
+// app.use is another next function to log errors in console
+app.use((err, req, res, next) => {
+  res.status(err.status).send({
+    message: err.message,
+    timestamp: Date.now(),
+    path: req.originalUrl,
+  });
 });
 
 app.listen(3000, () => {
