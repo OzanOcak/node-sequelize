@@ -14,9 +14,15 @@ const getUsers = async (pagination) => {
   const usersWithCount = await User.findAndCountAll({
     limit: size,
     offset: page * size,
+    attributes: ["id", "username", "email"], // to return attributes from object
   });
   return {
     content: usersWithCount.rows,
+    /*content: usersWithCount.rows.map((user) => {
+      const userAsJSON = user.get();
+      delete user.password;
+      return userAsJSON;
+    }),*/
     totalPages: Math.ceil(usersWithCount.count / Number.parseInt(size)),
   };
 };
