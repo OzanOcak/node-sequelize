@@ -22,3 +22,13 @@ curl http://localhost:3000/posts -X POST -d <json query>
 ```
 
 then we can check it in sql explorer
+
+---
+
+### 3. pagination
+
+```console
+curl http://localhost:3000/users?page=100&size=5
+```
+
+---
