@@ -32,3 +32,13 @@ curl http://localhost:3000/users?page=100&size=5
 ```
 
 ---
+
+### 5.Middleware
+
+```console
+touch Article.js
+curl http://localhost:3000/articles
+curl http://localhost:3000/users?page=100&size=5
+```
+
+---

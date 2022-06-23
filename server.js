@@ -1,6 +1,7 @@
 const express = require("express");
 const sequelize = require("./database");
 const User = require("./User");
+const Article = require("./Article");
 
 sequelize.sync({ force: true }).then(async () => {
   for (let i = 1; i <= 25; i++) {
@@ -10,6 +11,10 @@ sequelize.sync({ force: true }).then(async () => {
       password: "P4ssword",
     };
     await User.create(user);
+    const article = {
+      content: `article content ${i}`,
+    };
+    await Article.create(article);
   }
 });
 //force true update db and we can see modifications in the code
@@ -17,13 +22,29 @@ const app = express();
 
 app.use(express.json());
 
+/** this is the use case of middleware
+ * a sample of next which will run in every request
+ */
+
+const thisWillRunInEveryRequest = (req, res, next) => {
+  console.log("running the middleware for", req.method, req.originalUrl);
+  next();
+};
+
+app.use(thisWillRunInEveryRequest);
+
+/** --------------------- */
+
 app.post("/users", async (req, res) => {
   await User.create(req.body).then(() => {
     res.send("user is inserted");
   });
 });
 
-app.get("/users", async (req, res) => {
+/** we can separate pagination and call it as
+ * a middleware
+ */
+const pagination = (req, res, next) => {
   const pageAsNumber = Number.parseInt(req.query.page);
   const sizeAsNumber = Number.parseInt(req.query.size);
 
@@ -40,6 +61,17 @@ app.get("/users", async (req, res) => {
   ) {
     size = sizeAsNumber;
   }
+  req.pagination = {
+    page,
+    size,
+  };
+  next();
+};
+
+// the pagination function will be called in app.get
+
+app.get("/users", pagination, async (req, res) => {
+  const { page, size } = req.pagination;
 
   const usersWithCount = await User.findAndCountAll({
     limit: size,
@@ -65,6 +97,21 @@ app.get("/users/:id", async (req, res, next) => {
     next(new UserNotFoundException());
   }
   res.send(user);
+});
+
+// we can next middleware in other routes
+
+app.get("/articles", pagination, async (req, res) => {
+  const { page, size } = req.pagination;
+
+  const articleWithCount = await Article.findAndCountAll({
+    limit: size,
+    offset: page * size,
+  });
+  res.send({
+    content: articleWithCount.rows,
+    totalPages: Math.ceil(articleWithCount.count / Number.parseInt(size)),
+  });
 });
 
 function InvalidIdException() {
