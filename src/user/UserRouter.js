@@ -8,7 +8,7 @@ const UserService = require("./UserService");
 const { body, validationResult } = require("express-validator");
 const ValidationException = require("../shared/ValidationException");
 
-/** localhost/user/10
+/** localhost/users/10
  *  post {"username": "",
           "email"   : "",
           "password": ""}

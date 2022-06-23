@@ -42,3 +42,13 @@ curl http://localhost:3000/users?page=100&size=5
 ```
 
 ---
+
+### 5.Bcrypt
+
+```console
+yarn add bcrypt
+post http://localhost:3000/users    {}
+get http://localhost:3000/
+```
+
+---
